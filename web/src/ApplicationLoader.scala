@@ -23,8 +23,9 @@ import scala.util.{Failure, Success}
   *
   *  TODO : 
   *  * add akka http routes to retrieve data
+  *  * add json parsers
   *  * add Tapir to generate openApi specs
-  *   * ...
+  *  * ...
   */
 object ApplicationLoader {
   lazy val dbConf: DbConf =

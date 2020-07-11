@@ -25,17 +25,13 @@ class DefaultPrincipalRepository(val xa: doobie.Transactor[IO]) extends Principa
          |WHERE t.primary_title = $title and t.title_type = ${Movie.name}
          |""".stripMargin
       .query[Principal]
-      .stream
-      .compile
-      .toList
+      .to[List]
       .transact(xa)
 
   override def selectAll(): IO[List[Principal]] =
     sql"""Select * FROM principals
          |""".stripMargin
       .query[Principal]
-      .stream
-      .compile
-      .toList
+      .to[List]
       .transact(xa)
 }

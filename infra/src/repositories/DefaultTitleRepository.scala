@@ -25,11 +25,14 @@ class DefaultTitleRepository(val xa: doobie.Transactor[IO]) extends TitleReposit
   }
 
   override def tvSeriesWithGreatestNumberOfEpisodes(): IO[GreatestTvSeries] = {
-    sql"""SELECT t.primary_title, COUNT(*) as episodes  FROM episodes e
-         |INNER JOIN titles t ON e.parentId = t.id
-         |WHERE t.title_type = ${TvSeries.name}
-         |GROUP BY (t.primary_title)
-         |LIMIT 1
+    sql"""SELECT t.id, t.primary_title, COUNT(*) as totalCount
+         |FROM  episodes e
+         |       INNER JOIN titles t
+         |            ON t.id = e.parent_id
+         |WHERE   t.title_type = ${TvSeries.name}
+         |GROUP   BY t.id, t.primary_title
+         |ORDER BY totalCount DESC
+         |LIMIT 1
          |""".stripMargin
       .query[GreatestTvSeries]
       .unique
@@ -37,5 +40,5 @@ class DefaultTitleRepository(val xa: doobie.Transactor[IO]) extends TitleReposit
   }
 }
 object DefaultTitleRepository {
-  implicit val titleTypedeMeta: Meta[Title.TitleType] = Meta[String].timap(TitleType.from(_).get)(_.name)
+  implicit val titleTypeMeta: Meta[Title.TitleType] = Meta[String].timap(TitleType.from(_).get)(_.name)
 }
