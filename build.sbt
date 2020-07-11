@@ -10,7 +10,6 @@ val akka = akkaStream ++ Seq(
   "com.lightbend.akka" %% "akka-stream-alpakka-csv" % "2.0.1",
 )
 
-val akkaHttp = akkaStream ++ Seq("com.typesafe.akka" %% "akka-http" % "10.1.12")
 val flyway = Seq("org.flywaydb" % "flyway-core" % "6.4.0")
 val scalaTest = Seq("org.scalatest" %% "scalatest" % "3.1.1")
 val doobieVersion = "0.8.6"
@@ -38,7 +37,7 @@ lazy val commonSettings: Seq[Setting[_]] =
 val toolsDependencies = Seq()
 val coreDependencies = cats
 val infraDependencies = akka ++ doobie ++ flyway ++ scalaCheck ++ scalaTest ++ doobieTest
-val webDependencies = akkaHttp
+val webDependencies = Seq()
 
 /**
   * Project definition

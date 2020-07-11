@@ -9,7 +9,7 @@ import scala.util.matching.Regex
 object Mappers {
   val separator: String = ","
   val regex: Regex = "^nm(\\w){2}(\\w)*".r
-  val maxId: Int = 68544
+  val maxId: Int = 68544 // for some reasons, ids presents on the csv stop at this value
   def toPerson(in: Map[String, String]): Option[Person] = {
     for {
       id <- in.get("nconst")

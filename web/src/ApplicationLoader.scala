@@ -1,31 +1,31 @@
+import java.util.concurrent.TimeUnit
+
+import akka.NotUsed
 import akka.actor.ActorSystem
-import akka.http.scaladsl.Http
-import akka.http.scaladsl.model.{ContentTypes, HttpEntity}
-import akka.http.scaladsl.server.Directives.{complete, get, path}
-import akka.http.scaladsl.server.Route
 import akka.stream.ActorMaterializer
-import akka.stream.scaladsl.Sink
+import akka.stream.scaladsl.{Keep, RunnableGraph, Sink, Source}
+import domain.{GreatestTvSeries, Principal}
 import repositories.RepoSqlContext
 import repositories.RepoSqlContext.DbConf
 import services.DefaultMovieService
 import utils.DataFeeder
 
-import scala.concurrent.{ExecutionContextExecutor, Future}
+import scala.concurrent.duration.Duration
+import scala.concurrent.{Await, ExecutionContextExecutor, Future}
 import scala.io.StdIn
 import scala.util.{Failure, Success}
 
-/***
-  *  Application starter program.
+/** *
+  * Application starter program.
   *
-  *  On start, we feed database with csv data using alpakka (akka-stream). First use of this library and i really like it.
-  *  The database is a basic in-memory relational database on postgresSql mode
-  *  I have tried to implement hexagonal architecture in this project using scala modules/sbt.
+  * On start, we feed database with csv data using alpakka (akka-stream). First use of this library and i really like it.
+  * The database is a basic in-memory relational database on postgresSql mode
+  * I have tried to implement hexagonal architecture in this project using scala modules/sbt.
   *
-  *  TODO : 
-  *  * add akka http routes to retrieve data
-  *  * add json parsers
-  *  * add Tapir to generate openApi specs
-  *  * ...
+  * TODO : 
+  * * add http server to expose some routes (play, akka-http ...)
+  * * add Tapir to generate openApi specs for new route
+  * * add property based tests
   */
 object ApplicationLoader {
   lazy val dbConf: DbConf =
@@ -38,22 +38,13 @@ object ApplicationLoader {
     db.principalRepository,
     db.titleRepository,
   )
-  lazy val movieService: DefaultMovieService = new DefaultMovieService(db.principalRepository)
+  lazy val movieService: DefaultMovieService = new DefaultMovieService(db.principalRepository, db.titleRepository)
 
   implicit val system: ActorSystem = ActorSystem("my-system")
   implicit val materializer: ActorMaterializer = ActorMaterializer()
   // needed for the future flatMap/onComplete in the end
   implicit val executionContext: ExecutionContextExecutor = system.dispatcher
   val yay = "\uD83C\uDF89"
-
-  val route: Route =
-    path("hello") {
-      get {
-        complete(HttpEntity(ContentTypes.`text/html(UTF-8)`, "<h1>Say hello to akka-http</h1>"))
-      }
-    }
-
-  val bindingFuture: Future[Http.ServerBinding] = Http().bindAndHandle(route, "localhost", 8080)
 
   def start(): Unit = {
     println(s"Creating new database schema")
@@ -62,20 +53,30 @@ object ApplicationLoader {
     dataLoader.loadData().onComplete {
       case Success(_) =>
         println(s"Loading data succeeded :   $yay")
-        movieService.selectAll
-          .runWith(Sink.seq)
-          .foreach(d => {
-            println(s"size ${d.size}")
-            d.foreach(p => println(s"principal : $p"))
-          })
-
-        println(s"Server online at http://localhost:8080/\nPress RETURN to stop...")
-        StdIn.readLine() // let it run until user presses return
-        ApplicationLoader.bindingFuture
-          .flatMap(_.unbind()) // trigger unbinding from the port
-          .onComplete(_ => system.terminate()) // and shutdown when done
+        println(s"The TV series that has the most episodes is : ${tvSeriesWithGreatNumberOfEpisodes().primaryTitle}")
+        println(s"Looking for movie principals ? Enter a movie name : ")
+        val movieName = StdIn.readLine()
+        println(s"Principals are : ")
+        principalsForMovieName(movieName).foreach(println)
       case Failure(e) => println(s"Failure :( : $e")
     }
 
+  }
+
+  def tvSeriesWithGreatNumberOfEpisodes(): GreatestTvSeries = {
+    val source: Source[GreatestTvSeries, NotUsed] = movieService.tvSeriesWithGreatNumberOfEpisodes()
+    val sink = Sink.head[GreatestTvSeries]
+    // connect the Source to the Sink, obtaining a RunnableGraph
+    val runnable: RunnableGraph[Future[GreatestTvSeries]] = source.toMat(sink)(Keep.right)
+    // materialize the flow and get the value of the sink.head
+    Await.result(runnable.run(), Duration(5, TimeUnit.SECONDS))
+  }
+
+  def principalsForMovieName(movieName: String): Seq[Principal] = {
+    println(s"Searching for $movieName principals ...")
+    val source = movieService.principalsForMovieName(movieName)
+    val sink = Sink.head[Seq[Principal]]
+    val runnable = source.toMat(sink)(Keep.right)
+    Await.result(runnable.run(), Duration(4, TimeUnit.SECONDS))
   }
 }

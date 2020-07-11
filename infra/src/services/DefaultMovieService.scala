@@ -6,10 +6,9 @@ import domain.{GreatestTvSeries, Principal}
 import repositories.{PrincipalRepository, TitleRepository}
 
 class DefaultMovieService(principalRepository: PrincipalRepository, titleRepository: TitleRepository) {
-  def principalsForMovieName(name: String): Source[Principal, NotUsed] =
-    Source(principalRepository.principalsOfMovieName(name).unsafeRunSync())
-  def selectAll: Source[Principal, NotUsed] = Source(principalRepository.selectAll().unsafeRunSync())
+  def principalsForMovieName(name: String): Source[Seq[Principal], NotUsed] =
+    Source.single(principalRepository.principalsOfMovieName(name).unsafeRunSync())
 
   def tvSeriesWithGreatNumberOfEpisodes(): Source[GreatestTvSeries, NotUsed] =
-    Source.future(titleRepository.tvSeriesWithGreatestNumberOfEpisodes().unsafeToFuture())
+    Source.single(titleRepository.tvSeriesWithGreatestNumberOfEpisodes().unsafeRunSync())
 }

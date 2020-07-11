@@ -16,7 +16,7 @@ class DefaultPrincipalRepositorySpec extends BaseRepoSpec {
       }
     }
     describe("principalsOfMovieName") {
-      it("should select principals of movie name") {
+      it("should select principals of a movie from its name") {
         db.personRepository.save(person).unsafeRunSync()
         db.titleRepository.save(title.copy(titleType = Movie)).unsafeRunSync()
         val expected = principal.copy(personId = person.id, titleId = title.id)
