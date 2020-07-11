@@ -7,12 +7,11 @@ This is an answer for the test recrutement of the imdb stream problem.
 ### Explanation of some technical choices : 
 On start, we feed database with csv data using [alpakka](https://doc.akka.io/docs/alpakka/current/). (First use of this library and i really like it).
 
-The database is a basic in-memory relational database on postgresSql mode. I have used Doobie as a jdbc framework for 
-
-fun since i don't have the chance to use it at work. 
+The database is a basic in-memory relational database on postgresSql mode. I have used Doobie (typelevel) as a jdbc framework for fun since i don't have the chance to use it at work. 
 
 As you will observe, i have tried to implement the hexagonal architecture in this project. A must have for all web developement projects.
   
+For unit tesing, i have used the random generator [RandomDataGenerator] (https://github.com/DanielaSfregola/random-data-generator) in order to generate testing data.
 
 ### Launch
   
