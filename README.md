@@ -9,17 +9,19 @@ On start, we feed database with csv data using [alpakka](https://doc.akka.io/doc
 
 The database is a basic in-memory relational database on postgresSql mode. I have used Doobie (typelevel) as a jdbc framework for fun since i don't have the chance to use it at work. 
 
-As you will observe, i have tried to implement the hexagonal architecture in this project. A must have for all web developement projects.
+As you will observe, I have tried to implement the hexagonal architecture in this project. A must-have for all web development projects.
   
-For unit tesing, i have used the random generator [RandomDataGenerator] (https://github.com/DanielaSfregola/random-data-generator) in order to generate testing data.
+For unit testing, I have used the random generator [RandomDataGenerator] (https://github.com/DanielaSfregola/random-data-generator) in order to generate testing data.
 
 ### Launch
   
-Since my csv files are stored on resources folder, for now we can not launch the program with sbt command.
+Since the csv files were included on the ressources folder, for now we can not launch the program with sbt command.
 
-Nevertheless, you can launch the program within your prefered IDE by triggring the method main on the ServerLauncher class.
+Nevertheless, you can launch the program within your preferred IDE by triggering the method main on the ServerLauncher class.
 
-
+### Disclaimer
+For some reasons, the name.basics.csv does not store all people existing on other files. So I did a little hack to avoid database integrity problems.
+As a consequence, principals with unknown person_id are not stored on database and will not be loaded on principalsForMovieName method.
 #### Enhancement : 
 * enhance error handling on orphan ids
 * add http server to expose some routes (play, akka-http ...)

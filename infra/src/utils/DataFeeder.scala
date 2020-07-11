@@ -91,7 +91,7 @@ object DataFeeder {
 
   lazy val cores: Int = Runtime.getRuntime.availableProcessors / 2
   val delimiter: Byte = CsvParsing.SemiColon
-  val quoteChar: Byte = CsvParsing.Tab
+  val quoteChar: Byte = CsvParsing.DoubleQuote
   val chunkSize: Int = 2000
   lazy val flow: Flow[ByteString, List[ByteString], NotUsed] = CsvParsing.lineScanner(delimiter, quoteChar)
 

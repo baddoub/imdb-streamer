@@ -23,7 +23,7 @@ CREATE TABLE titles(
 CREATE INDEX titles_type_idx ON titles (title_type);
 CREATE TABLE ratings
 (
-    title_id VARCHAR(36) NOT NULL REFERENCES titles (id),
+    title_id VARCHAR(36) NOT NULL,
     average_rating  DOUBLE,
     num_votes INT
 );

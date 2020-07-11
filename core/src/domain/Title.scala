@@ -10,7 +10,7 @@ final case class Title(
     isAdult: Int,
     startYear: Option[Int],
     endYear: Option[Int],
-    runtimeMinutes: Long,
+    runtimeMinutes: Option[Long],
     genres: Seq[String],
 )
 
@@ -21,21 +21,29 @@ object Title {
   object TitleType {
 
     // Enhancement 1 : Use sealrate
-    val all: Seq[TitleType] = Seq(Movie, Video, Short, TvSeries, TvEpisode)
+    val all: Seq[TitleType] = Seq(Movie, Video, Short, TvSeries, TvEpisode, TvMovie, TvShort, TvMiniSeries, TvSpecial)
 
     // Enhancement 2 : Use Either/Try/IO for better error handling
     def from(value: String): Option[TitleType] =
       all.find(_.name == value)
 
-    case object Movie extends TitleType("movie")
+    final case object Movie extends TitleType("movie")
 
-    case object Video extends TitleType("video")
+    final case object TvMovie extends TitleType("tvMovie")
 
-    case object Short extends TitleType("short")
+    final case object Video extends TitleType("video")
 
-    case object TvSeries extends TitleType("tvSeries")
+    final case object Short extends TitleType("short")
 
-    case object TvEpisode extends TitleType("tvEpisode")
+    final case object TvShort extends TitleType("tvShort")
+
+    final case object TvSeries extends TitleType("tvSeries")
+
+    final case object TvMiniSeries extends TitleType("tvMiniSeries")
+
+    final case object TvEpisode extends TitleType("tvEpisode")
+
+    final case object TvSpecial extends TitleType("tvSpecial")
 
   }
 }

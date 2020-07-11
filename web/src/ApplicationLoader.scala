@@ -4,10 +4,10 @@ import akka.NotUsed
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.{Keep, RunnableGraph, Sink, Source}
-import domain.{GreatestTvSeries, Principal}
+import domain.{Actor, GreatestTvSeries}
 import repositories.RepoSqlContext
 import repositories.RepoSqlContext.DbConf
-import services.DefaultMovieService
+import services.MovieService
 import utils.DataFeeder
 
 import scala.concurrent.duration.Duration
@@ -38,13 +38,12 @@ object ApplicationLoader {
     db.principalRepository,
     db.titleRepository,
   )
-  lazy val movieService: DefaultMovieService = new DefaultMovieService(db.principalRepository, db.titleRepository)
+  lazy val movieService: MovieService = new MovieService(db.principalRepository, db.titleRepository)
 
   implicit val system: ActorSystem = ActorSystem("my-system")
   implicit val materializer: ActorMaterializer = ActorMaterializer()
   // needed for the future flatMap/onComplete in the end
   implicit val executionContext: ExecutionContextExecutor = system.dispatcher
-  val yay = "\uD83C\uDF89"
 
   def start(): Unit = {
     println(s"Creating new database schema")
@@ -52,12 +51,13 @@ object ApplicationLoader {
     println(s"Loading data")
     dataLoader.loadData().onComplete {
       case Success(_) =>
-        println(s"Loading data succeeded :   $yay")
+        println(s"Loading data succeeded 🎉 !")
         println(s"The TV series that has the most episodes is : ${tvSeriesWithGreatNumberOfEpisodes().primaryTitle}")
         println(s"Looking for movie principals ? Enter a movie name : ")
         val movieName = StdIn.readLine()
-        println(s"Principals are : ")
-        principalsForMovieName(movieName).foreach(println)
+        println(s"Searching for $movieName principals ...")
+        println(principalsForMovieName(movieName))
+        system.terminate()
       case Failure(e) => println(s"Failure :( : $e")
     }
 
@@ -72,11 +72,9 @@ object ApplicationLoader {
     Await.result(runnable.run(), Duration(5, TimeUnit.SECONDS))
   }
 
-  def principalsForMovieName(movieName: String): Seq[Principal] = {
-    println(s"Searching for $movieName principals ...")
+  def principalsForMovieName(movieName: String): Seq[Actor] = {
     val source = movieService.principalsForMovieName(movieName)
-    val sink = Sink.head[Seq[Principal]]
-    val runnable = source.toMat(sink)(Keep.right)
-    Await.result(runnable.run(), Duration(4, TimeUnit.SECONDS))
+    val res: Future[Seq[Actor]] = source.runWith(Sink.seq[Actor])
+    Await.result(res, Duration(5, TimeUnit.SECONDS))
   }
 }

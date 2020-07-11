@@ -58,7 +58,6 @@ lazy val core = (project in file("core"))
   )
 
 lazy val infra = (project in file("infra"))
-  .dependsOn(core % "compile->compile;test->test")
   .settings(
     name := "infra",
     libraryDependencies ++= infraDependencies,
@@ -71,5 +70,5 @@ lazy val web = (project in file("web"))
 
 val root = (project in file("."))
   .dependsOn(web)
-  .aggregate(tools, core, infra, web) // send commands to every module
+  .aggregate(core, infra, web) // send commands to every module
   .settings(name := "imdb-streamer")

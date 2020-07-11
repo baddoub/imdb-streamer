@@ -1,10 +1,9 @@
 package repositories
 
 import cats.effect.IO
-import domain.Principal
-import domain.Title.TitleType.Movie
+import domain.Title.TitleType.{Movie, TvMovie}
+import domain.{Actor, Principal}
 import doobie.implicits._
-
 class DefaultPrincipalRepository(val xa: doobie.Transactor[IO]) extends PrincipalRepository {
   override def save(principal: Principal): IO[Int] = {
     println(s"Persisting : $principal")
@@ -19,14 +18,16 @@ class DefaultPrincipalRepository(val xa: doobie.Transactor[IO]) extends Principa
          |""".stripMargin.update.run.transact(xa)
   }
 
-  override def principalsOfMovieName(title: String): IO[List[Principal]] =
-    sql"""SELECT p.title_id, p.ordering, p.person_id, p.category, p.job, p.characters FROM titles t
+  override def principalsOfMovieName(title: String): IO[List[Actor]] = {
+    sql"""SELECT ps.primary_name, ps.primary_profession, p.job, p.characters FROM titles t
          |INNER JOIN principals p ON p.title_id = t.id
-         |WHERE t.primary_title = $title and t.title_type = ${Movie.name}
+         |INNER JOIN persons ps ON ps.id = p.person_id
+         |WHERE t.primary_title = $title and (t.title_type = ${Movie.name} OR t.title_type = ${TvMovie.name})
          |""".stripMargin
-      .query[Principal]
+      .query[Actor]
       .to[List]
       .transact(xa)
+  }
 
   override def selectAll(): IO[List[Principal]] =
     sql"""Select * FROM principals

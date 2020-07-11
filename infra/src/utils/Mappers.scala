@@ -8,7 +8,7 @@ import scala.util.matching.Regex
 
 object Mappers {
   val separator: String = ","
-  val regex: Regex = "^nm(\\w){2}(\\w)*".r
+  val regex: Regex = "^nm(0){2}(\\w)*".r
   val maxId: Int = 68544 // for some reasons, ids presents on the csv stop at this value
   def toPerson(in: Map[String, String]): Option[Person] = {
     for {
@@ -33,7 +33,7 @@ object Mappers {
   def toRating(in: Map[String, String]): Option[Rating] = {
     for {
       id <- in.get("tconst")
-      averageRating <- in.get("averageDouble").flatMap(v => Try(v.toDouble).toOption)
+      averageRating <- in.get("averageRating").flatMap(v => Try(v.toDouble).toOption)
       numVotes <- in.get("numVotes").flatMap(v => Try(v.toInt).toOption)
     } yield Rating(id, averageRating, numVotes)
   }
@@ -41,10 +41,9 @@ object Mappers {
     for {
       id <- in.get("tconst")
       ordering <- in.get("ordering").flatMap(v => Try(v.toInt).toOption)
-      personId <- in.get("nconst").withFilter { // little hack to allow only existing person ids.
-        case regex(id) => id.toInt < maxId
-        case _         => false
-      }
+      personId <- in
+        .get("nconst")
+        .filter(v => regex.matches(v) && v.drop(4).toInt <= maxId) // hack to allow only existing persons
       category <- in.get("category")
       job <- in.get("job")
       characters <- in.get("characters")
@@ -60,7 +59,7 @@ object Mappers {
       isAdult <- in.get("isAdult").flatMap(v => Try(v.toInt).toOption)
       startYear = in.get("startYear").flatMap(v => Try(v.toInt).toOption)
       endYear = in.get("endYear").flatMap(v => Try(v.toInt).toOption)
-      runtimeMinutes <- in.get("runtimeMinutes").flatMap(v => Try(v.toLong).toOption)
+      runtimeMinutes = in.get("runtimeMinutes").flatMap(v => Try(v.toLong).toOption)
       genres <- in.get("genres").map(_.split(separator))
     } yield Title(id, titleType, primaryTitle, originalTitle, isAdult, startYear, endYear, runtimeMinutes, genres)
   }
