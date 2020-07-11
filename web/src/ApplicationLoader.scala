@@ -56,7 +56,7 @@ object ApplicationLoader {
         println(s"Looking for movie principals ? Enter a movie name : ")
         val movieName = StdIn.readLine()
         println(s"Searching for $movieName principals ...")
-        println(principalsForMovieName(movieName))
+        principalsForMovieName(movieName).foreach(println)
         system.terminate()
       case Failure(e) => println(s"Failure :( : $e")
     }
