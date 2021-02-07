@@ -1,0 +1,30 @@
+<div class="app">
+  <h1>USA power plants net generation map</h1>
+  <table>
+    <tr>
+      <td width="40%">
+        <div>
+          <label for="power-plants">Show N top power plants : </label>
+          <input type="text" id="power-plants" name="power-plants" placeholder="5, 8, 50 ..."
+                 (keyup.enter)="this.displayPowerPlants(limitPP)"
+                 [(ngModel)]="limitPP">
+        </div>
+        <div>
+          <label for="states">Show N states with top PP generation : </label>
+          <input type="text" id="states" name="states" placeholder="5, 8, 50 .."
+                 (keyup.enter)="this.displayStates(limitStates)"
+                 [(ngModel)]="limitStates">
+        </div>
+        <div>Tip : Click on blue state to see details.</div>
+      </td>
+      <td width="30%">
+        <div id="svg-cont"></div>
+        <div class="tooltip" id="tooltip-states"></div>
+        <div class="tooltip" id="tooltip-pp"></div>
+      </td>
+      <td width="30%">
+        <div id="legend-cont"></div>
+      </td>
+    </tr>
+  </table>
+</div>
