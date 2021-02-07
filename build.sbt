@@ -1,4 +1,4 @@
-ThisBuild / organization := "com.badr"
+ThisBuild / organization := "g42"
 ThisBuild / version := "0.1.0-SNAPSHOT"
 ThisBuild / scalaVersion := "2.13.3"
 
@@ -7,6 +7,7 @@ val cats = Seq("org.typelevel" %% "cats-core" % "2.1.1", "org.typelevel" %% "cat
 val akkaStream = Seq("com.typesafe.akka" %% "akka-stream" % akkaVersion)
 val akka = akkaStream ++ Seq(
   "com.typesafe.akka" %% "akka-actor" % akkaVersion,
+  "ch.megard" %% "akka-http-cors" % "1.1.0",
   "com.lightbend.akka" %% "akka-stream-alpakka-csv" % "2.0.1",
 )
 
@@ -21,7 +22,7 @@ val doobie = Seq(
 ).map(_ % doobieVersion)
 
 val doobieTest = Seq("org.tpolecat" %% "doobie-scalatest" % doobieVersion).map(_ % Test)
-
+val log = Seq("ch.qos.logback" % "logback-classic" % "1.2.3", "com.typesafe.scala-logging" %% "scala-logging" % "3.9.2")
 val scalaCheck = Seq(
   "org.scalacheck" %% "scalacheck" % "1.14.3",
   "com.github.alexarchambault" %% "scalacheck-shapeless_1.14" % "1.2.5",
@@ -29,28 +30,31 @@ val scalaCheck = Seq(
 ).map(_ % Test)
 
 /**
+  * Tapir for API documenation
+  */
+val tapirVersion = "0.16.16"
+val tapirCore = "com.softwaremill.sttp.tapir" %% "tapir-core" % tapirVersion
+val tapirCirce = "com.softwaremill.sttp.tapir" %% "tapir-json-circe" % tapirVersion
+val tapirOpenApiCirceYaml = "com.softwaremill.sttp.tapir" %% "tapir-openapi-circe-yaml" % tapirVersion
+val tapirOpenApiDocs = "com.softwaremill.sttp.tapir" %% "tapir-openapi-docs" % tapirVersion
+val tapirSwaggerUiAkka = "com.softwaremill.sttp.tapir" %% "tapir-swagger-ui-akka-http" % tapirVersion
+val tapirAkkaServer = "com.softwaremill.sttp.tapir" %% "tapir-akka-http-server" % tapirVersion
+val tapir =
+  Seq(tapirCore, tapirCirce, tapirSwaggerUiAkka, tapirAkkaServer, tapirOpenApiDocs, tapirOpenApiCirceYaml, tapirCirce)
+
+/**
   * Global settings
   */
 lazy val commonSettings: Seq[Setting[_]] =
   Seq(scalacOptions ++= Seq("-deprecation"), resolvers ++= Seq(Resolver.jcenterRepo))
 
-val toolsDependencies = Seq()
 val coreDependencies = cats
-val infraDependencies = akka ++ doobie ++ flyway ++ scalaCheck ++ scalaTest ++ doobieTest
-val webDependencies = Seq()
+val infraDependencies = akka ++ doobie ++ flyway ++ scalaCheck ++ scalaTest ++ doobieTest ++ tapir ++ log
 
 /**
   * Project definition
   */
-lazy val tools = (project in file("tools"))
-  .settings(
-    name := "tools",
-    libraryDependencies ++= toolsDependencies,
-    commonSettings,
-  )
-
 lazy val core = (project in file("core"))
-  .dependsOn(tools)
   .settings(
     name := "core",
     libraryDependencies ++= coreDependencies,
@@ -58,17 +62,14 @@ lazy val core = (project in file("core"))
   )
 
 lazy val infra = (project in file("infra"))
+  .dependsOn(core)
   .settings(
     name := "infra",
     libraryDependencies ++= infraDependencies,
     commonSettings,
   )
 
-lazy val web = (project in file("web"))
-  .dependsOn(core % "compile->compile;test->test", infra)
-  .settings(name := "web", libraryDependencies ++= webDependencies, commonSettings)
-
 val root = (project in file("."))
-  .dependsOn(web)
-  .aggregate(core, infra, web) // send commands to every module
-  .settings(name := "imdb-streamer")
+  .dependsOn(infra)
+  .aggregate(core)
+  .settings(name := "g42-test")
