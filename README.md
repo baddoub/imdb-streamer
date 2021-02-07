@@ -1,46 +1,36 @@
+# imdb-streamer
+
+This is an answer for the test recrutement of the imdb stream problem.
+
 # Introduction 
 
-This is an attempt to resolve the G42 test interview.
-
 ### Explanation of some technical choices : 
+On start, we feed database with csv data using [alpakka](https://doc.akka.io/docs/alpakka/current/). (First use of this library and i really like it).
 
-On start, we feed the data base with csv data using [alpakka](https://doc.akka.io/docs/alpakka/current/), which based on Akka Streams. 
+The database is a basic in-memory relational database on postgresSql mode. I have used Doobie (typelevel) as a jdbc framework for fun since i don't have the chance to use it at work. 
 
-The database is a basic in-memory relational database on postgresSql mode. 
-
-As you may notice, I have tried to implement the hexagonal architecture in this project, with different modules and good separation of concerns.
+As you will observe, I have tried to implement the hexagonal architecture in this project. A must-have for all web development projects.
   
 For unit testing, I have used the random generator [RandomDataGenerator] (https://github.com/DanielaSfregola/random-data-generator) in order to generate testing data.
 
-For API documentation, I used tapir which is a library for describing HTTP endpoints in a type-safe way.
-
-### Prerequisites
-#### For back-end : 
-* Install the building tool sbt. 
-`brew install sbt`
-
-#### For front-end :
-* Install npm 
-`brew install npm`
-* Install angular cli
-`npm install -g @angular/cli`
 ### Launch
-#### For back-end :
-`sbt infra/run`
-#### For front-end :
-`cd web`  
-`ng serve`
+  
+Since the csv files were included on the ressources folder, for now we can not launch the program with sbt command.
 
-Open your browser on http://localhost:4200/. 
+Nevertheless, you can launch the program within your preferred IDE by triggering the method main on the ServerLauncher class.
 
-#### back-end Tests
-`sbt infra/test`
+### Disclaimer
+For some reasons, the name.basics.csv does not store all people existing on other files. So I did a little hack to avoid database integrity problems.
+As a consequence, principals with unknown person_id are not stored on database and will not be loaded on principalsForMovieName method.
+#### Enhancement : 
+* enhance error handling on orphan ids
+* add http server to expose some routes (play, akka-http ...)
+* add Tapir to generate openApi specs for new route
+* add property based tests with scalacheck
 
-#### Enhancement :
-* Create an angular component for the US map.
-* add tests for the front-end part.
-* Fix the todos ^^
+
+
 
 ### Conclusion
 
-* Playing with D3.js was fun and painful in the same time. If I had to retake the test, I will choose an easier js library ^^.
+This test was so much fun. Hope to hear some feedbacks on this code base.
